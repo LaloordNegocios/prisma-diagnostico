@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prisma — Diagnóstico Estratégico Digital</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0f;
+  --card-bg: rgba(255,255,255,0.03);
+  --card-border: rgba(255,255,255,0.06);
+  --input-bg: rgba(255,255,255,0.04);
+  --border: rgba(255,255,255,0.1);
+  --text-primary: rgba(255,255,255,0.9);
+  --text-secondary: rgba(255,255,255,0.55);
+  --text-muted: rgba(255,255,255,0.35);
+  --accent: #8b5cf6;
+  --accent-soft: rgba(139,92,246,0.12);
+  --accent-glow: rgba(139,92,246,0.15);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  min-height: 100vh;
+  background: linear-gradient(145deg, #0a0a0f 0%, #12121a 50%, #0d0d14 100%);
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text-primary);
+  position: relative;
+  overflow-x: hidden;
+}
+.ambient-1 {
+  position: fixed; top: -200px; right: -200px; width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(99,102,241,0.06) 0%, rgba(139,92,246,0.03) 40%, transparent 70%);
+  pointer-events: none;
+}
+.ambient-2 {
+  position: fixed; bottom: -300px; left: -200px; width: 700px; height: 700px;
+  background: radial-gradient(circle, rgba(167,139,250,0.04) 0%, rgba(99,102,241,0.02) 40%, transparent 70%);
+  pointer-events: none;
+}
+.container {
+  max-width: 640px; margin: 0 auto; padding: 48px 24px 120px; position: relative; z-index: 1;
+}
+.header { margin-bottom: 48px; text-align: center; }
+.logo-row { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.logo-diamond {
+  width: 32px; height: 32px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6, #a78bfa, #c4b5fd);
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+}
+.logo-text {
+  font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700;
+  color: #fff; letter-spacing: 0.06em;
+}
+.header-sub {
+  font-size: 13px; color: var(--text-muted); letter-spacing: 0.15em; text-transform: uppercase;
+}
+.step-indicator { display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 40px; }
+.step-dot {
+  height: 10px; border-radius: 5px; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.step-dot.active { width: 32px; background: linear-gradient(90deg, #6366f1, #8b5cf6); }
+.step-dot.completed { width: 10px; background: linear-gradient(90deg, #6366f1, #8b5cf6); }
+.step-dot.inactive { width: 10px; background: rgba(255,255,255,0.08); }
+.step-header { margin-bottom: 36px; transition: all 0.3s ease; }
+.step-label {
+  font-size: 12px; font-weight: 600; color: var(--accent);
+  letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px;
+}
+.step-title {
+  font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700;
+  color: #fff; margin: 0 0 8px;
+}
+.step-subtitle { font-size: 15px; color: var(--text-secondary); line-height: 1.6; }
+.card {
+  background: var(--card-bg); border: 1px solid var(--card-border);
+  border-radius: 16px; padding: 32px 28px; backdrop-filter: blur(20px);
+  transition: all 0.35s ease;
+}
+.field { margin-bottom: 28px; }
+.field-label {
+  display: block; font-size: 14px; font-weight: 600; color: var(--text-primary);
+  margin-bottom: 6px; letter-spacing: 0.01em;
+}
+.field-label .req { color: var(--accent); }
+.field-hint {
+  font-size: 13px; color: var(--text-muted); margin: 0 0 10px; line-height: 1.5;
+}
+input[type="text"], input[type="email"], input[type="tel"], textarea, select {
+  width: 100%; padding: 14px 16px; font-family: 'DM Sans', sans-serif; font-size: 15px;
+  border: 1.5px solid var(--border); border-radius: 10px; background: var(--input-bg);
+  color: var(--text-primary); outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+}
+input:focus, textarea:focus, select:focus {
+  border-color: var(--accent) !important; box-shadow: 0 0 0 3px var(--accent-glow) !important;
+}
+textarea { resize: vertical; min-height: 100px; }
+::placeholder { color: var(--text-muted); }
+select {
+  cursor: pointer; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 16px center;
+}
+select option { background: #1a1a2e; color: #fff; }
+.chip-group { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  padding: 10px 18px; font-family: 'DM Sans', sans-serif; font-size: 14px;
+  border: 1.5px solid var(--border); border-radius: 50px; background: var(--input-bg);
+  color: var(--text-secondary); cursor: pointer; transition: all 0.2s; font-weight: 400;
+}
+.chip.active {
+  border-color: var(--accent); background: var(--accent-soft);
+  color: var(--accent); font-weight: 600;
+}
+.radio-group { display: flex; flex-direction: column; gap: 8px; }
+.radio-btn {
+  padding: 12px 18px; font-family: 'DM Sans', sans-serif; font-size: 14px;
+  border: 1.5px solid var(--border); border-radius: 10px; background: var(--input-bg);
+  color: var(--text-secondary); cursor: pointer; transition: all 0.2s;
+  text-align: left; font-weight: 400; width: 100%;
+}
+.radio-btn.active {
+  border-color: var(--accent); background: var(--accent-soft);
+  color: var(--accent); font-weight: 600;
+}
+.nav { display: flex; justify-content: space-between; align-items: center; margin-top: 28px; gap: 12px; }
+.btn-back {
+  padding: 14px 28px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
+  color: var(--text-secondary); background: transparent; border: 1.5px solid var(--border);
+  border-radius: 10px; cursor: pointer; transition: all 0.2s;
+}
+.btn-back:hover { border-color: rgba(255,255,255,0.25); }
+.btn-next {
+  padding: 14px 32px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
+  color: #fff; background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none;
+  border-radius: 10px; cursor: pointer; transition: all 0.2s;
+  box-shadow: 0 4px 20px rgba(99,102,241,0.25);
+}
+.btn-next:hover { transform: translateY(-1px); }
+.btn-submit {
+  padding: 14px 36px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
+  color: #fff; background: linear-gradient(135deg, #6366f1, #7c3aed, #8b5cf6); border: none;
+  border-radius: 10px; cursor: pointer; transition: all 0.2s;
+  box-shadow: 0 4px 24px rgba(99,102,241,0.3);
+}
+.btn-submit:hover { transform: translateY(-1px); }
+.footer {
+  text-align: center; margin-top: 48px; padding-top: 24px;
+  border-top: 1px solid rgba(255,255,255,0.04);
+}
+.footer p { font-size: 12px; color: var(--text-muted); }
+.fade-in { animation: fadeIn 0.35s ease forwards; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+.success-screen {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  text-align: center; padding: 24px;
+}
+.success-icon {
+  width: 80px; height: 80px; border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6, #a78bfa);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 28px; font-size: 36px; color: #fff;
+}
+.hidden { display: none; }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<div class="ambient-1"></div>
+<div class="ambient-2"></div>
+
+<!-- SUCCESS SCREEN -->
+<div id="success-screen" class="success-screen hidden">
+  <div style="max-width:480px">
+    <div class="success-icon">✓</div>
+    <h1 style="font-family:'Playfair Display',serif;font-size:32px;font-weight:700;color:#fff;margin:0 0 12px">Diagnóstico Listo</h1>
+    <p style="font-size:16px;color:rgba(255,255,255,0.55);line-height:1.7;margin:0 0 24px">
+      Gracias, <strong id="success-name" style="color:rgba(255,255,255,0.8)"></strong>.
+      <br>Se abrió un email con tus respuestas. <strong style="color:rgba(255,255,255,0.7)">Solo dale "Enviar"</strong> para que nuestro equipo reciba tu diagnóstico.
+    </p>
+    <p style="font-size:13px;color:rgba(255,255,255,0.3);line-height:1.6;margin:0">
+      ¿No se abrió el email? Tus respuestas también se copiaron al portapapeles. Pégalas en un mensaje a nuestro equipo.
+    </p>
+  </div>
+</div>
+
+<!-- MAIN WIZARD -->
+<div id="wizard" class="container">
+  <div class="header">
+    <div class="logo-row">
+      <div class="logo-diamond"></div>
+      <span class="logo-text">PRISMA</span>
+    </div>
+    <p class="header-sub">Diagnóstico Estratégico Digital</p>
+  </div>
+
+  <div class="step-indicator" id="step-indicator"></div>
+
+  <div class="step-header fade-in" id="step-header">
+    <div class="step-label" id="step-label"></div>
+    <h2 class="step-title" id="step-title"></h2>
+    <p class="step-subtitle" id="step-subtitle"></p>
+  </div>
+
+  <div class="card fade-in" id="step-content"></div>
+
+  <div class="nav">
+    <div id="nav-left"></div>
+    <div id="nav-right"></div>
+  </div>
+
+  <div class="footer">
+    <p>Tus respuestas son 100% confidenciales · Prisma © <script>document.write(new Date().getFullYear())</script></p>
+  </div>
+</div>
+
+<script>
+const PRISMA_EMAIL = "negociosemprendimiento07@gmail.com";
+
+const STEPS = [
+  { id:"negocio", title:"Tu Negocio", subtitle:"Cuéntanos sobre lo que haces y lo que te hace único." },
+  { id:"identidad", title:"Tú como Marca", subtitle:"Detrás de cada negocio hay una persona. Conocerte nos ayuda a crear contenido auténtico, no genérico." },
+  { id:"audiencia", title:"Tu Audiencia", subtitle:"Ayúdanos a entender a quién quieres llegar." },
+  { id:"presencia", title:"Tu Presencia Digital", subtitle:"¿Dónde estás hoy en redes sociales?" },
+  { id:"objetivos", title:"Tus Objetivos", subtitle:"¿Hacia dónde quieres ir?" }
+];
+
+const REDES = ["TikTok","Instagram","Facebook","YouTube","LinkedIn","X (Twitter)","Otra"];
+const FRECUENCIA = ["No publico","1-2 veces por semana","3-5 veces por semana","Diario","Irregular / sin consistencia"];
+const CONTENIDO_CONSUMO = ["Educativo","Entretenimiento / humor","Inspiracional / motivacional","Tutoriales prácticos","Tendencias y challenges","Noticias de su industria"];
+const TIEMPO = ["Menos de 2 horas","2-5 horas","5-10 horas","Más de 10 horas","No tengo tiempo, por eso busco ayuda"];
+const VIDEOS = ["1-2 videos","3-4 videos","5-7 videos","Más de 7 videos","No sé, necesito orientación"];
+const OBJETIVOS = ["Conseguir más clientes","Aumentar seguidores y visibilidad","Posicionarme como experto en mi área","Lanzar un producto o servicio nuevo","Generar comunidad","Todas las anteriores"];
+const CRECIMIENTO = ["Un crecimiento gradual y sostenido (10-20% más que hoy)","Duplicar mis clientes actuales en 3 meses","Triplicar o más — necesito un cambio drástico","No tengo claro qué esperar, necesito que me orienten"];
+const FORMACION = ["Tengo estudios formales o certificaciones","Me formé con experiencia práctica (autodidacta o en campo)","Ambos — tengo estudios y experiencia","Estoy en proceso de formarme"];
+const TIPO_NEGOCIO = ["Presencial","En línea","Ambos (presencial y en línea)"];
+const EQUIPO = ["Hago todo solo(a)","Tengo un asistente o alguien que me ayuda","Tengo un equipo pequeño (2-5 personas)","Tengo un equipo grande (+5 personas)"];
+const PUBLICIDAD = ["Sí, actualmente invierto","Sí, pero ya no","No, nunca","No sé qué es eso"];
+
+let currentStep = 0;
+let data = {};
+
+function textField(key, label, hint, required, multiline) {
+  const req = required ? '<span class="req">*</span>' : '';
+  const hintHtml = hint ? `<p class="field-hint">${hint}</p>` : '';
+  const tag = multiline
+    ? `<textarea id="f_${key}" placeholder="" rows="4">${data[key]||''}</textarea>`
+    : `<input type="text" id="f_${key}" value="${(data[key]||'').replace(/"/g,'&quot;')}" placeholder="">`;
+  return `<div class="field"><label class="field-label">${label} ${req}</label>${hintHtml}${tag}</div>`;
+}
+
+function chipGroup(key, label, hint, options) {
+  const selected = data[key] || [];
+  const hintHtml = hint ? `<p class="field-hint">${hint}</p>` : '';
+  const chips = options.map(o => {
+    const active = selected.includes(o) ? 'active' : '';
+    return `<button type="button" class="chip ${active}" onclick="toggleChip('${key}','${o.replace(/'/g,"\\'")}')">${selected.includes(o)?'✓ ':''}${o}</button>`;
+  }).join('');
+  return `<div class="field"><label class="field-label">${label} <span class="req">*</span></label>${hintHtml}<div class="chip-group">${chips}</div></div>`;
+}
+
+function radioGroup(key, label, hint, options) {
+  const hintHtml = hint ? `<p class="field-hint">${hint}</p>` : '';
+  const btns = options.map(o => {
+    const active = data[key] === o ? 'active' : '';
+    const prefix = data[key] === o ? '● ' : '○ ';
+    return `<button type="button" class="radio-btn ${active}" onclick="setRadio('${key}','${o.replace(/'/g,"\\'")}')">${prefix}${o}</button>`;
+  }).join('');
+  return `<div class="field"><label class="field-label">${label} <span class="req">*</span></label>${hintHtml}<div class="radio-group">${btns}</div></div>`;
+}
+
+function toggleChip(key, val) {
+  if (!data[key]) data[key] = [];
+  const i = data[key].indexOf(val);
+  if (i >= 0) data[key].splice(i, 1); else data[key].push(val);
+  renderStep();
+}
+
+function setRadio(key, val) {
+  data[key] = val;
+  renderStep();
+}
+
+function saveTextFields() {
+  document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], textarea').forEach(el => {
+    const key = el.id.replace('f_', '');
+    if (key) data[key] = el.value;
+  });
+}
+
+function getStepHTML(step) {
+  switch(step) {
+    case 0: return [
+      textField('nombre_persona','Tu nombre completo',null,true,false),
+      textField('email','Email de contacto',null,true,false),
+      textField('telefono','Teléfono o WhatsApp','Para coordinar la entrega de tu estrategia.',true,false),
+      textField('ciudad','¿En qué ciudad o zona operas?','Si tu negocio es 100% online, escribe "Online" y tu ciudad de residencia.',true,false),
+      textField('nombre_negocio','Nombre de tu negocio o marca','Si no tienes marca todavía, pon tu nombre personal — muchos negocios exitosos empiezan así.',true,false),
+      textField('descripcion','¿A qué se dedica tu negocio?','Describe en 2-3 oraciones qué haces y para quién.',true,true),
+      textField('productos_servicios','¿Qué productos o servicios ofreces?','Lista tus principales ofertas.',true,true),
+      textField('diferenciador','¿Qué te hace diferente?','Esta es la pregunta más importante. ¿Qué ofreces tú que otros en tu ramo NO ofrecen? ¿Por qué alguien debería elegirte a ti?',true,true),
+      radioGroup('formacion','¿Tu formación profesional en esta área es…?','No hay respuesta buena ni mala. Ambos caminos son válidos — pero nos ayuda a saber cómo posicionar tu autoridad en el contenido.',FORMACION),
+      textField('credenciales','Si tienes certificaciones, títulos o estudios relevantes, ¿cuáles son?','Licenciatura, maestría, diplomados, certificaciones, cursos especializados. Si no aplica, escribe "N/A".',false,true),
+      textField('modelo_ingresos','¿Cómo generas ingresos actualmente?','Consultas, productos físicos, cursos, servicios, etc.',true,false),
+      textField('precio_promedio','¿Cuál es el precio promedio de tu producto o servicio?','Si manejas varios precios, pon un rango (ej: "$500 - $2,000 por consulta"). Esto nos ayuda a entender qué tipo de estrategia necesitas: no es lo mismo vender algo de $200 que de $10,000.',true,false),
+      radioGroup('tipo_negocio','¿Tu negocio es…?',null,TIPO_NEGOCIO),
+      textField('competidores','¿Quiénes son tus 2-3 competidores principales?','Nombre o @ de redes de negocios similares al tuyo. Esto nos ayuda a ver qué hace tu competencia en contenido y cómo diferenciarte. Si no sabes, escribe "No estoy seguro(a)".',false,true)
+    ].join('');
+
+    case 1: return [
+      textField('hobbies','¿Cuáles son tus hobbies o intereses fuera de tu trabajo?','Deportes, cocina, música, videojuegos, lectura, viajes, coleccionar algo… Lo que sea que te apasione fuera de lo profesional. Esto nos ayuda a encontrar ángulos únicos para tu contenido.',true,true),
+      textField('expertise','¿En qué tema te consideras experto(a) — aunque no tenga que ver con tu negocio?','Tal vez sabes mucho de café, de historia, de coches, de psicología. Esos conocimientos "random" pueden ser oro para tu contenido.',true,true),
+      textField('pasion','¿Qué es lo que más te apasiona de lo que haces?','No la respuesta "correcta" — la respuesta real. ¿Qué parte de tu trabajo harías gratis?',true,true),
+      textField('personalidad','¿Cómo te describirían tus amigos o clientes en 3 palabras?','¿Serio? ¿Chistoso? ¿Directo? ¿Cálido? ¿Intenso? Esto define el tono de tu contenido.',true,false),
+      textField('referentes','¿Hay algún creador o marca cuyo estilo de contenido admires?','No tiene que ser de tu industria. Puede ser un YouTuber, un TikToker, una marca. Danos referencias de lo que te gusta ver.',false,true),
+      textField('no_haria','¿Hay algo que NO estarías dispuesto(a) a hacer en contenido?','¿No quieres mostrar tu cara? ¿No bailas? ¿No hablas de tu vida personal? ¿Odias los trends? Dilo con confianza — diseñamos la estrategia alrededor de tus límites, no en contra de ellos.',false,true)
+    ].join('');
+
+    case 2: return [
+      textField('cliente_ideal','Describe a tu cliente ideal','Piensa en esa persona que sería tu mejor cliente. ¿Qué edad tiene? ¿Dónde vive? ¿A qué se dedica? ¿Qué estilo de vida lleva?',true,true),
+      textField('problema_resuelve','¿Qué problema principal les resuelves?','¿Qué dolor o necesidad tiene tu cliente que tú solucionas?',true,true),
+      chipGroup('redes_audiencia','¿En qué redes sociales pasa tiempo tu audiencia?','Selecciona todas las que apliquen.',REDES),
+      chipGroup('contenido_consume','¿Qué tipo de contenido consume tu audiencia?','Selecciona los formatos que crees que les atraen más.',CONTENIDO_CONSUMO)
+    ].join('');
+
+    case 3: return [
+      chipGroup('redes_actuales','¿Qué redes sociales usas actualmente para tu negocio?',null,REDES),
+      textField('arroba_redes','¿Cuáles son tus @ en redes y cuántos seguidores tienes?','Ej: @minegocio en Instagram (1,200 seguidores), @minegocio en TikTok (300 seguidores). Necesitamos ver tu perfil actual para diseñar una estrategia realista.',true,true),
+      radioGroup('frecuencia_publicacion','¿Con qué frecuencia publicas contenido?',null,FRECUENCIA),
+      textField('contenido_actual','¿Qué tipo de contenido has hecho hasta ahora?','Fotos, videos, reels, historias, lives, etc. Si no has hecho nada, escribe "Nada todavía".',false,true),
+      textField('que_funciono','¿Qué te ha funcionado y qué no?','¿Algún post tuvo buenos resultados? ¿Algo que intentaste y no pegó? Si no sabes, está bien decirlo.',false,true),
+      textField('videos_virales','Si ya publicas, ¿cuáles han sido tus videos o posts con más alcance?','Pega los links o descríbelos. Nos interesa saber qué le gustó a tu audiencia — a veces lo que más pega no es lo que esperas. Si no has publicado, escribe "Aún no publico".',false,true),
+      radioGroup('tiempo_semanal','¿Cuánto tiempo a la semana puedes dedicar a contenido?',null,TIEMPO),
+      radioGroup('videos_semana','¿Cuántos videos estarías dispuesto(a) a publicar por semana?','Sé honesto(a). Es mejor publicar 2 videos naturales y auténticos que 7 forzados. El mejor contenido no requiere guiones complicados — si grabar se siente como tarea pesada, algo está mal.',VIDEOS),
+      radioGroup('tiene_equipo','¿Tienes equipo o haces todo solo(a)?','Esto define qué tan ambiciosa puede ser la estrategia. No es lo mismo planear para una persona que para un equipo.',EQUIPO)
+    ].join('');
+
+    case 4: return [
+      chipGroup('objetivo_principal','¿Qué quieres lograr en los próximos 3 meses?','Selecciona tus prioridades.',OBJETIVOS),
+      textField('clientes_actuales','¿Cuántos clientes o ventas generas al mes actualmente?','Un número aproximado está bien. Si estás empezando desde cero, escríbelo — no hay respuesta incorrecta.',true,false),
+      radioGroup('crecimiento_esperado','¿Qué nivel de crecimiento esperas en los próximos 3 meses?','El crecimiento orgánico en redes toma tiempo. Sé honesto(a) sobre tus expectativas para que podamos diseñar una estrategia realista.',CRECIMIENTO),
+      radioGroup('publicidad_pagada','¿Has invertido en publicidad pagada en redes?',null,PUBLICIDAD),
+      textField('algo_mas','¿Hay algo más que debamos saber?','Cualquier detalle adicional sobre tu negocio, tu situación, o tus expectativas.',false,true)
+    ].join('');
+  }
+}
+
+function renderStep() {
+  saveTextFields();
+  const s = STEPS[currentStep];
+
+  // Indicator
+  const ind = document.getElementById('step-indicator');
+  ind.innerHTML = STEPS.map((_, i) => {
+    let cls = 'inactive';
+    if (i === currentStep) cls = 'active';
+    else if (i < currentStep) cls = 'completed';
+    return `<div class="step-dot ${cls}"></div>`;
+  }).join('');
+
+  // Header
+  document.getElementById('step-label').textContent = `Paso ${currentStep+1} de ${STEPS.length}`;
+  document.getElementById('step-title').textContent = s.title;
+  document.getElementById('step-subtitle').textContent = s.subtitle;
+
+  // Content
+  const content = document.getElementById('step-content');
+  content.innerHTML = getStepHTML(currentStep);
+
+  // Nav
+  const navL = document.getElementById('nav-left');
+  const navR = document.getElementById('nav-right');
+  navL.innerHTML = currentStep > 0
+    ? '<button class="btn-back" onclick="prevStep()">← Anterior</button>' : '';
+  if (currentStep < STEPS.length - 1) {
+    navR.innerHTML = '<button class="btn-next" onclick="nextStep()">Siguiente →</button>';
+  } else {
+    navR.innerHTML = '<button class="btn-submit" onclick="submitForm()">Enviar Diagnóstico ✓</button>';
+  }
+}
+
+function nextStep() {
+  saveTextFields();
+  if (currentStep < STEPS.length - 1) {
+    currentStep++;
+    renderStep();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+function prevStep() {
+  saveTextFields();
+  if (currentStep > 0) {
+    currentStep--;
+    renderStep();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+function formatResponses() {
+  const sections = [
+    { title:"DATOS DE CONTACTO", fields:[
+      ["Nombre",data.nombre_persona],["Email",data.email],["Teléfono",data.telefono],["Ciudad",data.ciudad]
+    ]},
+    { title:"EL NEGOCIO", fields:[
+      ["Marca/Negocio",data.nombre_negocio],["Descripción",data.descripcion],["Productos/Servicios",data.productos_servicios],
+      ["Diferenciador",data.diferenciador],["Formación",data.formacion],["Credenciales",data.credenciales],
+      ["Modelo de ingresos",data.modelo_ingresos],["Precio promedio",data.precio_promedio],
+      ["Tipo de negocio",data.tipo_negocio],["Competidores",data.competidores]
+    ]},
+    { title:"LA PERSONA DETRÁS DE LA MARCA", fields:[
+      ["Hobbies",data.hobbies],["Expertise",data.expertise],["Pasión",data.pasion],
+      ["Personalidad",data.personalidad],["Referentes",data.referentes],["NO haría",data.no_haria]
+    ]},
+    { title:"AUDIENCIA", fields:[
+      ["Cliente ideal",data.cliente_ideal],["Problema que resuelve",data.problema_resuelve],
+      ["Redes de audiencia",Array.isArray(data.redes_audiencia)?data.redes_audiencia.join(", "):""],
+      ["Contenido que consume",Array.isArray(data.contenido_consume)?data.contenido_consume.join(", "):""]
+    ]},
+    { title:"PRESENCIA DIGITAL", fields:[
+      ["Redes actuales",Array.isArray(data.redes_actuales)?data.redes_actuales.join(", "):""],
+      ["@ y seguidores",data.arroba_redes],["Frecuencia",data.frecuencia_publicacion],
+      ["Contenido actual",data.contenido_actual],["Qué ha funcionado",data.que_funciono],
+      ["Videos virales",data.videos_virales],["Tiempo semanal",data.tiempo_semanal],
+      ["Videos por semana",data.videos_semana],["Equipo",data.tiene_equipo]
+    ]},
+    { title:"OBJETIVOS", fields:[
+      ["Objetivos 3 meses",Array.isArray(data.objetivo_principal)?data.objetivo_principal.join(", "):""],
+      ["Clientes actuales/mes",data.clientes_actuales],["Crecimiento esperado",data.crecimiento_esperado],
+      ["Publicidad pagada",data.publicidad_pagada],["Notas adicionales",data.algo_mas]
+    ]}
+  ];
+
+  return sections.map(s => {
+    const fields = s.fields.filter(([,v]) => v && v.length > 0).map(([l,v]) => `${l}: ${v}`).join("\n");
+    return `═══ ${s.title} ═══\n${fields}`;
+  }).join("\n\n");
+}
+
+function submitForm() {
+  saveTextFields();
+  const body = formatResponses();
+  const subject = `Diagnóstico Prisma — ${data.nombre_negocio || data.nombre_persona || "Nuevo cliente"}`;
+  const mailto = `mailto:${PRISMA_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+  try { navigator.clipboard.writeText(body); } catch(e) {}
+
+  window.open(mailto, '_blank');
+
+  document.getElementById('wizard').classList.add('hidden');
+  const ss = document.getElementById('success-screen');
+  ss.classList.remove('hidden');
+  document.getElementById('success-name').textContent = data.nombre_negocio || data.nombre_persona || "tu negocio";
+}
+
+// Init
+renderStep();
+</script>
+</body>
+</html>
