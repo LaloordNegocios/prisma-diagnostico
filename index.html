@@ -179,10 +179,7 @@ select option { background: #1a1a2e; color: #fff; }
     <h1 style="font-family:'Playfair Display',serif;font-size:32px;font-weight:700;color:#fff;margin:0 0 12px">Diagnóstico Listo</h1>
     <p style="font-size:16px;color:rgba(255,255,255,0.55);line-height:1.7;margin:0 0 24px">
       Gracias, <strong id="success-name" style="color:rgba(255,255,255,0.8)"></strong>.
-      <br>Se abrió un email con tus respuestas. <strong style="color:rgba(255,255,255,0.7)">Solo dale "Enviar"</strong> para que nuestro equipo reciba tu diagnóstico.
-    </p>
-    <p style="font-size:13px;color:rgba(255,255,255,0.3);line-height:1.6;margin:0">
-      ¿No se abrió el email? Tus respuestas también se copiaron al portapapeles. Pégalas en un mensaje a nuestro equipo.
+      <br>Recibimos tu diagnóstico correctamente. Nuestro equipo analizará tus respuestas y te contactará con tu estrategia personalizada.
     </p>
   </div>
 </div>
@@ -218,7 +215,7 @@ select option { background: #1a1a2e; color: #fff; }
 </div>
 
 <script>
-const PRISMA_EMAIL = "negociosemprendimiento07@gmail.com";
+const FORMSPREE_URL = "https://formspree.io/f/xkopkgwa";
 
 const STEPS = [
   { id:"negocio", title:"Tu Negocio", subtitle:"Cuéntanos sobre lo que haces y lo que te hace único." },
@@ -442,18 +439,42 @@ function formatResponses() {
 
 function submitForm() {
   saveTextFields();
-  const body = formatResponses();
-  const subject = `Diagnóstico Prisma — ${data.nombre_negocio || data.nombre_persona || "Nuevo cliente"}`;
-  const mailto = `mailto:${PRISMA_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 
-  try { navigator.clipboard.writeText(body); } catch(e) {}
+  // Prepare data for Formspree
+  const payload = {
+    _subject: `Diagnóstico Prisma — ${data.nombre_negocio || data.nombre_persona || "Nuevo cliente"}`,
+    resumen_formateado: formatResponses(),
+    nombre_persona: data.nombre_persona || "",
+    email: data.email || "",
+    telefono: data.telefono || "",
+    ciudad: data.ciudad || "",
+    nombre_negocio: data.nombre_negocio || "",
+  };
 
-  window.open(mailto, '_blank');
+  // Disable button while sending
+  const btn = document.querySelector('.btn-submit');
+  if (btn) { btn.textContent = "Enviando..."; btn.disabled = true; btn.style.opacity = "0.6"; }
 
-  document.getElementById('wizard').classList.add('hidden');
-  const ss = document.getElementById('success-screen');
-  ss.classList.remove('hidden');
-  document.getElementById('success-name').textContent = data.nombre_negocio || data.nombre_persona || "tu negocio";
+  fetch(FORMSPREE_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Accept": "application/json" },
+    body: JSON.stringify(payload)
+  })
+  .then(response => {
+    if (response.ok) {
+      document.getElementById('wizard').classList.add('hidden');
+      const ss = document.getElementById('success-screen');
+      ss.classList.remove('hidden');
+      document.getElementById('success-name').textContent = data.nombre_negocio || data.nombre_persona || "tu negocio";
+    } else {
+      alert("Hubo un error al enviar. Por favor intenta de nuevo.");
+      if (btn) { btn.textContent = "Enviar Diagnóstico ✓"; btn.disabled = false; btn.style.opacity = "1"; }
+    }
+  })
+  .catch(err => {
+    alert("Error de conexión. Revisa tu internet e intenta de nuevo.");
+    if (btn) { btn.textContent = "Enviar Diagnóstico ✓"; btn.disabled = false; btn.style.opacity = "1"; }
+  });
 }
 
 // Init
