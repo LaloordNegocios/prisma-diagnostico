@@ -440,16 +440,12 @@ function formatResponses() {
 function submitForm() {
   saveTextFields();
 
-  // Prepare data for Formspree
-  const payload = {
-    _subject: `Diagnóstico Prisma — ${data.nombre_negocio || data.nombre_persona || "Nuevo cliente"}`,
-    resumen_formateado: formatResponses(),
-    nombre_persona: data.nombre_persona || "",
-    email: data.email || "",
-    telefono: data.telefono || "",
-    ciudad: data.ciudad || "",
-    nombre_negocio: data.nombre_negocio || "",
-  };
+  // Prepare FormData for Formspree
+  const formData = new FormData();
+  formData.append("_subject", `Diagnóstico Prisma — ${data.nombre_negocio || data.nombre_persona || "Nuevo cliente"}`);
+  formData.append("_replyto", data.email || "sin-email@prisma.com");
+  formData.append("email", data.email || "sin-email@prisma.com");
+  formData.append("message", formatResponses());
 
   // Disable button while sending
   const btn = document.querySelector('.btn-submit');
@@ -457,8 +453,8 @@ function submitForm() {
 
   fetch(FORMSPREE_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json", "Accept": "application/json" },
-    body: JSON.stringify(payload)
+    headers: { "Accept": "application/json" },
+    body: formData
   })
   .then(response => {
     if (response.ok) {
