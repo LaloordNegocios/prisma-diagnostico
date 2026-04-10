@@ -172,7 +172,6 @@ select option { background: #1a1a2e; color: #fff; }
 <div class="ambient-1"></div>
 <div class="ambient-2"></div>
 
-<!-- SUCCESS SCREEN -->
 <div id="success-screen" class="success-screen hidden">
   <div style="max-width:480px">
     <div class="success-icon">✓</div>
@@ -184,7 +183,6 @@ select option { background: #1a1a2e; color: #fff; }
   </div>
 </div>
 
-<!-- MAIN WIZARD -->
 <div id="wizard" class="container">
   <div class="header">
     <div class="logo-row">
@@ -215,9 +213,9 @@ select option { background: #1a1a2e; color: #fff; }
 </div>
 
 <script>
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzUBTc8XoRJhjCCXXkVUXL1SWUUB4CVeE2wui2zu7WVlCTxMDQY4T2cDK-0TMLtoVml/exec";
+var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzUBTc8XoRJhjCCXXkVUXL1SWUUB4CVeE2wui2zu7WVlCTxMDQY4T2cDK-0TMLtoVml/exec";
 
-const STEPS = [
+var STEPS = [
   { id:"negocio", title:"Tu Negocio", subtitle:"Cuéntanos sobre lo que haces y lo que te hace único." },
   { id:"identidad", title:"Tú como Marca", subtitle:"Detrás de cada negocio hay una persona. Conocerte nos ayuda a crear contenido auténtico, no genérico." },
   { id:"audiencia", title:"Tu Audiencia", subtitle:"Ayúdanos a entender a quién quieres llegar." },
@@ -225,53 +223,54 @@ const STEPS = [
   { id:"objetivos", title:"Tus Objetivos", subtitle:"¿Hacia dónde quieres ir?" }
 ];
 
-const REDES = ["TikTok","Instagram","Facebook","YouTube","LinkedIn","X (Twitter)","Otra"];
-const FRECUENCIA = ["No publico","1-2 veces por semana","3-5 veces por semana","Diario","Irregular / sin consistencia"];
-const CONTENIDO_CONSUMO = ["Educativo","Entretenimiento / humor","Inspiracional / motivacional","Tutoriales prácticos","Tendencias y challenges","Noticias de su industria"];
-const TIEMPO = ["Menos de 2 horas","2-5 horas","5-10 horas","Más de 10 horas","No tengo tiempo, por eso busco ayuda"];
-const VIDEOS = ["1-2 videos","3-4 videos","5-7 videos","Más de 7 videos","No sé, necesito orientación"];
-const OBJETIVOS = ["Conseguir más clientes","Aumentar seguidores y visibilidad","Posicionarme como experto en mi área","Lanzar un producto o servicio nuevo","Generar comunidad","Todas las anteriores"];
-const CRECIMIENTO = ["Un crecimiento gradual y sostenido (10-20% más que hoy)","Duplicar mis clientes actuales en 3 meses","Triplicar o más — necesito un cambio drástico","No tengo claro qué esperar, necesito que me orienten"];
-const FORMACION = ["Tengo estudios formales o certificaciones","Me formé con experiencia práctica (autodidacta o en campo)","Ambos — tengo estudios y experiencia","Estoy en proceso de formarme"];
-const TIPO_NEGOCIO = ["Presencial","En línea","Ambos (presencial y en línea)"];
-const EQUIPO = ["Hago todo solo(a)","Tengo un asistente o alguien que me ayuda","Tengo un equipo pequeño (2-5 personas)","Tengo un equipo grande (+5 personas)"];
-const PUBLICIDAD = ["Sí, actualmente invierto","Sí, pero ya no","No, nunca","No sé qué es eso"];
+var REDES = ["TikTok","Instagram","Facebook","YouTube","LinkedIn","X (Twitter)","Otra"];
+var FRECUENCIA = ["No publico","1-2 veces por semana","3-5 veces por semana","Diario","Irregular / sin consistencia"];
+var CONTENIDO_CONSUMO = ["Educativo","Entretenimiento / humor","Inspiracional / motivacional","Tutoriales prácticos","Tendencias y challenges","Noticias de su industria"];
+var TIEMPO = ["Menos de 2 horas","2-5 horas","5-10 horas","Más de 10 horas","No tengo tiempo, por eso busco ayuda"];
+var VIDEOS = ["1-2 videos","3-4 videos","5-7 videos","Más de 7 videos","No sé, necesito orientación"];
+var OBJETIVOS = ["Conseguir más clientes","Aumentar seguidores y visibilidad","Posicionarme como experto en mi área","Lanzar un producto o servicio nuevo","Generar comunidad","Todas las anteriores"];
+var CRECIMIENTO = ["Un crecimiento gradual y sostenido (10-20% más que hoy)","Duplicar mis clientes actuales en 3 meses","Triplicar o más — necesito un cambio drástico","No tengo claro qué esperar, necesito que me orienten"];
+var FORMACION = ["Tengo estudios formales o certificaciones","Me formé con experiencia práctica (autodidacta o en campo)","Ambos — tengo estudios y experiencia","Estoy en proceso de formarme"];
+var TIPO_NEGOCIO = ["Presencial","En línea","Ambos (presencial y en línea)"];
+var EQUIPO = ["Hago todo solo(a)","Tengo un asistente o alguien que me ayuda","Tengo un equipo pequeño (2-5 personas)","Tengo un equipo grande (+5 personas)"];
+var PUBLICIDAD = ["Sí, actualmente invierto","Sí, pero ya no","No, nunca","No sé qué es eso"];
 
-let currentStep = 0;
-let data = {};
+var currentStep = 0;
+var data = {};
 
 function textField(key, label, hint, required, multiline) {
-  const req = required ? '<span class="req">*</span>' : '';
-  const hintHtml = hint ? `<p class="field-hint">${hint}</p>` : '';
-  const tag = multiline
-    ? `<textarea id="f_${key}" placeholder="" rows="4">${data[key]||''}</textarea>`
-    : `<input type="text" id="f_${key}" value="${(data[key]||'').replace(/"/g,'&quot;')}" placeholder="">`;
-  return `<div class="field"><label class="field-label">${label} ${req}</label>${hintHtml}${tag}</div>`;
+  var req = required ? '<span class="req">*</span>' : '';
+  var hintHtml = hint ? '<p class="field-hint">' + hint + '</p>' : '';
+  var tag = multiline
+    ? '<textarea id="f_' + key + '" placeholder="" rows="4">' + (data[key]||'') + '</textarea>'
+    : '<input type="text" id="f_' + key + '" value="' + (data[key]||'').replace(/"/g,'&quot;') + '" placeholder="">';
+  return '<div class="field"><label class="field-label">' + label + ' ' + req + '</label>' + hintHtml + tag + '</div>';
 }
 
 function chipGroup(key, label, hint, options) {
-  const selected = data[key] || [];
-  const hintHtml = hint ? `<p class="field-hint">${hint}</p>` : '';
-  const chips = options.map(o => {
-    const active = selected.includes(o) ? 'active' : '';
-    return `<button type="button" class="chip ${active}" onclick="toggleChip('${key}','${o.replace(/'/g,"\\'")}')">${selected.includes(o)?'✓ ':''}${o}</button>`;
+  var selected = data[key] || [];
+  var hintHtml = hint ? '<p class="field-hint">' + hint + '</p>' : '';
+  var chips = options.map(function(o) {
+    var active = selected.indexOf(o) >= 0 ? 'active' : '';
+    var check = selected.indexOf(o) >= 0 ? '✓ ' : '';
+    return '<button type="button" class="chip ' + active + '" onclick="toggleChip(\'' + key + '\',\'' + o.replace(/'/g,"\\'") + '\')">' + check + o + '</button>';
   }).join('');
-  return `<div class="field"><label class="field-label">${label} <span class="req">*</span></label>${hintHtml}<div class="chip-group">${chips}</div></div>`;
+  return '<div class="field"><label class="field-label">' + label + ' <span class="req">*</span></label>' + hintHtml + '<div class="chip-group">' + chips + '</div></div>';
 }
 
 function radioGroup(key, label, hint, options) {
-  const hintHtml = hint ? `<p class="field-hint">${hint}</p>` : '';
-  const btns = options.map(o => {
-    const active = data[key] === o ? 'active' : '';
-    const prefix = data[key] === o ? '● ' : '○ ';
-    return `<button type="button" class="radio-btn ${active}" onclick="setRadio('${key}','${o.replace(/'/g,"\\'")}')">${prefix}${o}</button>`;
+  var hintHtml = hint ? '<p class="field-hint">' + hint + '</p>' : '';
+  var btns = options.map(function(o) {
+    var active = data[key] === o ? 'active' : '';
+    var prefix = data[key] === o ? '● ' : '○ ';
+    return '<button type="button" class="radio-btn ' + active + '" onclick="setRadio(\'' + key + '\',\'' + o.replace(/'/g,"\\'") + '\')">' + prefix + o + '</button>';
   }).join('');
-  return `<div class="field"><label class="field-label">${label} <span class="req">*</span></label>${hintHtml}<div class="radio-group">${btns}</div></div>`;
+  return '<div class="field"><label class="field-label">' + label + ' <span class="req">*</span></label>' + hintHtml + '<div class="radio-group">' + btns + '</div></div>';
 }
 
 function toggleChip(key, val) {
   if (!data[key]) data[key] = [];
-  const i = data[key].indexOf(val);
+  var i = data[key].indexOf(val);
   if (i >= 0) data[key].splice(i, 1); else data[key].push(val);
   renderStep();
 }
@@ -282,10 +281,12 @@ function setRadio(key, val) {
 }
 
 function saveTextFields() {
-  document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], textarea').forEach(el => {
-    const key = el.id.replace('f_', '');
+  var fields = document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], textarea');
+  for (var i = 0; i < fields.length; i++) {
+    var el = fields[i];
+    var key = el.id.replace('f_', '');
     if (key) data[key] = el.value;
-  });
+  }
 }
 
 function getStepHTML(step) {
@@ -347,25 +348,25 @@ function getStepHTML(step) {
 
 function renderStep() {
   saveTextFields();
-  const s = STEPS[currentStep];
+  var s = STEPS[currentStep];
 
-  const ind = document.getElementById('step-indicator');
-  ind.innerHTML = STEPS.map((_, i) => {
-    let cls = 'inactive';
+  var ind = document.getElementById('step-indicator');
+  ind.innerHTML = STEPS.map(function(_, i) {
+    var cls = 'inactive';
     if (i === currentStep) cls = 'active';
     else if (i < currentStep) cls = 'completed';
-    return `<div class="step-dot ${cls}"></div>`;
+    return '<div class="step-dot ' + cls + '"></div>';
   }).join('');
 
-  document.getElementById('step-label').textContent = `Paso ${currentStep+1} de ${STEPS.length}`;
+  document.getElementById('step-label').textContent = 'Paso ' + (currentStep+1) + ' de ' + STEPS.length;
   document.getElementById('step-title').textContent = s.title;
   document.getElementById('step-subtitle').textContent = s.subtitle;
 
-  const content = document.getElementById('step-content');
+  var content = document.getElementById('step-content');
   content.innerHTML = getStepHTML(currentStep);
 
-  const navL = document.getElementById('nav-left');
-  const navR = document.getElementById('nav-right');
+  var navL = document.getElementById('nav-left');
+  var navR = document.getElementById('nav-right');
   navL.innerHTML = currentStep > 0
     ? '<button class="btn-back" onclick="prevStep()">← Anterior</button>' : '';
   if (currentStep < STEPS.length - 1) {
@@ -396,22 +397,22 @@ function prevStep() {
 function submitForm() {
   saveTextFields();
 
-  const btn = document.querySelector('.btn-submit');
+  var btn = document.querySelector('.btn-submit');
   if (btn) { btn.textContent = "Enviando..."; btn.disabled = true; btn.style.opacity = "0.6"; }
 
   fetch(APPS_SCRIPT_URL, {
     method: "POST",
     mode: "no-cors",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "text/plain" },
     body: JSON.stringify(data)
   })
-  .then(() => {
+  .then(function() {
     document.getElementById('wizard').classList.add('hidden');
-    const ss = document.getElementById('success-screen');
+    var ss = document.getElementById('success-screen');
     ss.classList.remove('hidden');
     document.getElementById('success-name').textContent = data.nombre_negocio || data.nombre_persona || "tu negocio";
   })
-  .catch(err => {
+  .catch(function(err) {
     alert("Error de conexión. Revisa tu internet e intenta de nuevo.");
     if (btn) { btn.textContent = "Enviar Diagnóstico ✓"; btn.disabled = false; btn.style.opacity = "1"; }
   });
