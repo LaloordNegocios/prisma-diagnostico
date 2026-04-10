@@ -171,6 +171,7 @@ select option { background: #1a1a2e; color: #fff; }
 
 <div class="ambient-1"></div>
 <div class="ambient-2"></div>
+<iframe id="hidden-iframe" name="hidden-iframe" style="display:none"></iframe>
 
 <div id="success-screen" class="success-screen hidden">
   <div style="max-width:480px">
@@ -400,22 +401,27 @@ function submitForm() {
   var btn = document.querySelector('.btn-submit');
   if (btn) { btn.textContent = "Enviando..."; btn.disabled = true; btn.style.opacity = "0.6"; }
 
-  fetch(APPS_SCRIPT_URL, {
-    method: "POST",
-    mode: "no-cors",
-    headers: { "Content-Type": "text/plain" },
-    body: JSON.stringify(data)
-  })
-  .then(function() {
+  var form = document.createElement('form');
+  form.method = 'POST';
+  form.action = APPS_SCRIPT_URL;
+  form.target = 'hidden-iframe';
+
+  var input = document.createElement('input');
+  input.type = 'hidden';
+  input.name = 'data';
+  input.value = JSON.stringify(data);
+  form.appendChild(input);
+
+  document.body.appendChild(form);
+  form.submit();
+  document.body.removeChild(form);
+
+  setTimeout(function() {
     document.getElementById('wizard').classList.add('hidden');
     var ss = document.getElementById('success-screen');
     ss.classList.remove('hidden');
     document.getElementById('success-name').textContent = data.nombre_negocio || data.nombre_persona || "tu negocio";
-  })
-  .catch(function(err) {
-    alert("Error de conexión. Revisa tu internet e intenta de nuevo.");
-    if (btn) { btn.textContent = "Enviar Diagnóstico ✓"; btn.disabled = false; btn.style.opacity = "1"; }
-  });
+  }, 2000);
 }
 
 renderStep();
