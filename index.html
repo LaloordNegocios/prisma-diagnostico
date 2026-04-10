@@ -215,7 +215,7 @@ select option { background: #1a1a2e; color: #fff; }
 </div>
 
 <script>
-const FORMSPREE_URL = "https://formspree.io/f/xkopkgwa";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzUBTc8XoRJhjCCXXkVUXL1SWUUB4CVeE2wui2zu7WVlCTxMDQY4T2cDK-0TMLtoVml/exec";
 
 const STEPS = [
   { id:"negocio", title:"Tu Negocio", subtitle:"Cuéntanos sobre lo que haces y lo que te hace único." },
@@ -349,7 +349,6 @@ function renderStep() {
   saveTextFields();
   const s = STEPS[currentStep];
 
-  // Indicator
   const ind = document.getElementById('step-indicator');
   ind.innerHTML = STEPS.map((_, i) => {
     let cls = 'inactive';
@@ -358,16 +357,13 @@ function renderStep() {
     return `<div class="step-dot ${cls}"></div>`;
   }).join('');
 
-  // Header
   document.getElementById('step-label').textContent = `Paso ${currentStep+1} de ${STEPS.length}`;
   document.getElementById('step-title').textContent = s.title;
   document.getElementById('step-subtitle').textContent = s.subtitle;
 
-  // Content
   const content = document.getElementById('step-content');
   content.innerHTML = getStepHTML(currentStep);
 
-  // Nav
   const navL = document.getElementById('nav-left');
   const navR = document.getElementById('nav-right');
   navL.innerHTML = currentStep > 0
@@ -397,75 +393,23 @@ function prevStep() {
   }
 }
 
-function formatResponses() {
-  const sections = [
-    { title:"DATOS DE CONTACTO", fields:[
-      ["Nombre",data.nombre_persona],["Email",data.email],["Teléfono",data.telefono],["Ciudad",data.ciudad]
-    ]},
-    { title:"EL NEGOCIO", fields:[
-      ["Marca/Negocio",data.nombre_negocio],["Descripción",data.descripcion],["Productos/Servicios",data.productos_servicios],
-      ["Diferenciador",data.diferenciador],["Formación",data.formacion],["Credenciales",data.credenciales],
-      ["Modelo de ingresos",data.modelo_ingresos],["Precio promedio",data.precio_promedio],
-      ["Tipo de negocio",data.tipo_negocio],["Competidores",data.competidores]
-    ]},
-    { title:"LA PERSONA DETRÁS DE LA MARCA", fields:[
-      ["Hobbies",data.hobbies],["Expertise",data.expertise],["Pasión",data.pasion],
-      ["Personalidad",data.personalidad],["Referentes",data.referentes],["NO haría",data.no_haria]
-    ]},
-    { title:"AUDIENCIA", fields:[
-      ["Cliente ideal",data.cliente_ideal],["Problema que resuelve",data.problema_resuelve],
-      ["Redes de audiencia",Array.isArray(data.redes_audiencia)?data.redes_audiencia.join(", "):""],
-      ["Contenido que consume",Array.isArray(data.contenido_consume)?data.contenido_consume.join(", "):""]
-    ]},
-    { title:"PRESENCIA DIGITAL", fields:[
-      ["Redes actuales",Array.isArray(data.redes_actuales)?data.redes_actuales.join(", "):""],
-      ["@ y seguidores",data.arroba_redes],["Frecuencia",data.frecuencia_publicacion],
-      ["Contenido actual",data.contenido_actual],["Qué ha funcionado",data.que_funciono],
-      ["Videos virales",data.videos_virales],["Tiempo semanal",data.tiempo_semanal],
-      ["Videos por semana",data.videos_semana],["Equipo",data.tiene_equipo]
-    ]},
-    { title:"OBJETIVOS", fields:[
-      ["Objetivos 3 meses",Array.isArray(data.objetivo_principal)?data.objetivo_principal.join(", "):""],
-      ["Clientes actuales/mes",data.clientes_actuales],["Crecimiento esperado",data.crecimiento_esperado],
-      ["Publicidad pagada",data.publicidad_pagada],["Notas adicionales",data.algo_mas]
-    ]}
-  ];
-
-  return sections.map(s => {
-    const fields = s.fields.filter(([,v]) => v && v.length > 0).map(([l,v]) => `${l}: ${v}`).join("\n");
-    return `═══ ${s.title} ═══\n${fields}`;
-  }).join("\n\n");
-}
-
 function submitForm() {
   saveTextFields();
 
-  // Prepare FormData for Formspree
-  const formData = new FormData();
-  formData.append("_subject", `Diagnóstico Prisma — ${data.nombre_negocio || data.nombre_persona || "Nuevo cliente"}`);
-  formData.append("_replyto", data.email || "sin-email@prisma.com");
-  formData.append("email", data.email || "sin-email@prisma.com");
-  formData.append("message", formatResponses());
-
-  // Disable button while sending
   const btn = document.querySelector('.btn-submit');
   if (btn) { btn.textContent = "Enviando..."; btn.disabled = true; btn.style.opacity = "0.6"; }
 
-  fetch(FORMSPREE_URL, {
+  fetch(APPS_SCRIPT_URL, {
     method: "POST",
-    headers: { "Accept": "application/json" },
-    body: formData
+    mode: "no-cors",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
   })
-  .then(response => {
-    if (response.ok) {
-      document.getElementById('wizard').classList.add('hidden');
-      const ss = document.getElementById('success-screen');
-      ss.classList.remove('hidden');
-      document.getElementById('success-name').textContent = data.nombre_negocio || data.nombre_persona || "tu negocio";
-    } else {
-      alert("Hubo un error al enviar. Por favor intenta de nuevo.");
-      if (btn) { btn.textContent = "Enviar Diagnóstico ✓"; btn.disabled = false; btn.style.opacity = "1"; }
-    }
+  .then(() => {
+    document.getElementById('wizard').classList.add('hidden');
+    const ss = document.getElementById('success-screen');
+    ss.classList.remove('hidden');
+    document.getElementById('success-name').textContent = data.nombre_negocio || data.nombre_persona || "tu negocio";
   })
   .catch(err => {
     alert("Error de conexión. Revisa tu internet e intenta de nuevo.");
@@ -473,7 +417,6 @@ function submitForm() {
   });
 }
 
-// Init
 renderStep();
 </script>
 </body>
