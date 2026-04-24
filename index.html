@@ -123,6 +123,11 @@ select option { background: #1a1a2e; color: #fff; }
   border-color: var(--accent); background: var(--accent-soft);
   color: var(--accent); font-weight: 600;
 }
+.branch-divider {
+  margin: 8px 0 24px; padding: 12px 16px;
+  background: var(--accent-soft); border-left: 3px solid var(--accent);
+  border-radius: 6px; font-size: 13px; color: var(--accent); font-weight: 500;
+}
 .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 28px; gap: 12px; }
 .btn-back {
   padding: 14px 28px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
@@ -221,20 +226,38 @@ var STEPS = [
   { id:"identidad", title:"Tú como Marca", subtitle:"Detrás de cada negocio hay una persona. Conocerte nos ayuda a crear contenido auténtico, no genérico." },
   { id:"audiencia", title:"Tu Audiencia", subtitle:"Ayúdanos a entender a quién quieres llegar." },
   { id:"presencia", title:"Tu Presencia Digital", subtitle:"¿Dónde estás hoy en redes sociales?" },
-  { id:"objetivos", title:"Tus Objetivos", subtitle:"¿Hacia dónde quieres ir?" }
+  { id:"objetivos", title:"Tus Objetivos", subtitle:"¿Hacia dónde quieres ir y qué necesitas de nosotros?" }
 ];
 
 var REDES = ["TikTok","Instagram","Facebook","YouTube","LinkedIn","X (Twitter)","Otra"];
 var FRECUENCIA = ["No publico","1-2 veces por semana","3-5 veces por semana","Diario","Irregular / sin consistencia"];
-var CONTENIDO_CONSUMO = ["Educativo","Entretenimiento / humor","Inspiracional / motivacional","Tutoriales prácticos","Tendencias y challenges","Noticias de su industria"];
-var TIEMPO = ["Menos de 2 horas","2-5 horas","5-10 horas","Más de 10 horas","No tengo tiempo, por eso busco ayuda"];
 var VIDEOS = ["1-2 videos","3-4 videos","5-7 videos","Más de 7 videos","No sé, necesito orientación"];
 var OBJETIVOS = ["Conseguir más clientes","Aumentar seguidores y visibilidad","Posicionarme como experto en mi área","Lanzar un producto o servicio nuevo","Generar comunidad","Todas las anteriores"];
 var CRECIMIENTO = ["Un crecimiento gradual y sostenido (10-20% más que hoy)","Duplicar mis clientes actuales en 3 meses","Triplicar o más — necesito un cambio drástico","No tengo claro qué esperar, necesito que me orienten"];
 var FORMACION = ["Tengo estudios formales o certificaciones","Me formé con experiencia práctica (autodidacta o en campo)","Ambos — tengo estudios y experiencia","Estoy en proceso de formarme"];
-var TIPO_NEGOCIO = ["Presencial","En línea","Ambos (presencial y en línea)"];
 var EQUIPO = ["Hago todo solo(a)","Tengo un asistente o alguien que me ayuda","Tengo un equipo pequeño (2-5 personas)","Tengo un equipo grande (+5 personas)"];
-var PUBLICIDAD = ["Sí, actualmente invierto","Sí, pero ya no","No, nunca","No sé qué es eso"];
+
+// Nuevas constantes para ramas
+var TIPO_GIRO = [
+  "Comida (puestos, fondas, restaurantes, food trucks, postres)",
+  "Tienda / Productos (naturista, boutique, papelería, etc.)",
+  "Profesional independiente (nutriólogo, coach, psicólogo, dentista)",
+  "Otro"
+];
+var TIPO_ESTABLECIMIENTO_COMIDA = ["Local fijo","Puesto en calle / mercado","Food truck","En casa / por pedido"];
+var ASESORIA_TIENDA = ["Solo vendo productos","Ofrezco asesoría/consulta además del producto","La asesoría es parte central de mi servicio"];
+var SERVICIOS_PRISMA = [
+  "Creación de contenido (videos, reels, fotos)",
+  "Videos con Inteligencia Artificial (avatares, animación, voces IA)",
+  "Crecimiento orgánico en redes sociales",
+  "Publicidad pagada (Meta Ads, TikTok Ads, Google Ads)",
+  "Generación de leads (captar clientes potenciales)",
+  "Automatización de procesos (WhatsApp, respuestas, agendas)",
+  "Creación de página web / landing page",
+  "Estrategia de marca y posicionamiento",
+  "Consultoría estratégica",
+  "Todavía no sé, recomiéndenme"
+];
 
 var currentStep = 0;
 var data = {};
@@ -290,6 +313,41 @@ function saveTextFields() {
   }
 }
 
+function branchFieldsForGiro() {
+  var giro = data.tipo_giro || '';
+  if (!giro) return '';
+
+  var divider = '<div class="branch-divider">✨ Preguntas específicas para tu tipo de negocio</div>';
+
+  if (giro.indexOf('Comida') === 0) {
+    return divider + [
+      radioGroup('tipo_establecimiento','¿Qué tipo de establecimiento tienes?',null,TIPO_ESTABLECIMIENTO_COMIDA),
+      textField('horario_dias','¿Qué días y en qué horario vendes?','Ej: "Viernes a domingo, de 9am a 4pm".',true,false),
+      textField('delivery_eventos','¿Ofreces servicio a domicilio, eventos o catering?','Dinos si tienes delivery propio o por qué plataforma (Rappi, DiDi, Uber Eats). Si haces eventos/catering, cuéntanos.',false,true),
+      textField('historia','Historia breve del negocio','¿Receta familiar? ¿Cuánto tiempo llevas? Esto nos sirve para construir tu marca con autenticidad.',false,true)
+    ].join('');
+  }
+  if (giro.indexOf('Tienda') === 0) {
+    return divider + [
+      textField('categorias','¿Qué categorías de productos vendes?','Ej: herbolaria, suplementos, orgánicos, belleza natural, alimentos especiales.',true,true),
+      radioGroup('asesoria_tienda','¿Ofreces asesoría o solo vendes productos?','En negocios naturistas muchos clientes buscan orientación además del producto.',ASESORIA_TIENDA),
+      textField('canales_venta','¿Por qué canales vendes?','¿Local físico, online, ambos? Si vendes online, dinos por qué plataforma (Mercado Libre, tienda propia, Instagram, WhatsApp, etc.).',true,true),
+      textField('marca_o_reventa','¿Vendes marca propia, reventa o ambos?','Si es marca propia, cuéntanos brevemente. Si es reventa, qué marcas principales.',false,true)
+    ].join('');
+  }
+  if (giro.indexOf('Profesional') === 0) {
+    return divider + [
+      radioGroup('formacion','¿Tu formación profesional es…?','Ambos caminos son válidos — nos ayuda a posicionar tu autoridad.',FORMACION),
+      textField('credenciales','Certificaciones, títulos o estudios relevantes','Licenciatura, maestría, diplomados, certificaciones. Si no aplica, escribe "N/A".',false,true),
+      textField('modelo_ingresos','¿Cómo generas ingresos?','Consultas, productos, cursos, servicios, etc.',true,false)
+    ].join('');
+  }
+  if (giro === 'Otro') {
+    return divider + textField('descripcion_otro','Cuéntanos más sobre tu tipo de negocio','Como no encaja en las categorías anteriores, dinos en detalle cómo opera tu negocio, cómo generas ingresos y qué tiene de particular.',true,true);
+  }
+  return '';
+}
+
 function getStepHTML(step) {
   switch(step) {
     case 0: return [
@@ -299,50 +357,38 @@ function getStepHTML(step) {
       textField('ciudad','¿En qué ciudad o zona operas?','Si tu negocio es 100% online, escribe "Online" y tu ciudad de residencia.',true,false),
       textField('nombre_negocio','Nombre de tu negocio o marca','Si no tienes marca todavía, pon tu nombre personal — muchos negocios exitosos empiezan así.',true,false),
       textField('descripcion','¿A qué se dedica tu negocio?','Describe en 2-3 oraciones qué haces y para quién.',true,true),
-      textField('productos_servicios','¿Qué productos o servicios ofreces?','Lista tus principales ofertas.',true,true),
       textField('diferenciador','¿Qué te hace diferente?','Esta es la pregunta más importante. ¿Qué ofreces tú que otros en tu ramo NO ofrecen? ¿Por qué alguien debería elegirte a ti?',true,true),
-      radioGroup('formacion','¿Tu formación profesional en esta área es…?','No hay respuesta buena ni mala. Ambos caminos son válidos — pero nos ayuda a saber cómo posicionar tu autoridad en el contenido.',FORMACION),
-      textField('credenciales','Si tienes certificaciones, títulos o estudios relevantes, ¿cuáles son?','Licenciatura, maestría, diplomados, certificaciones, cursos especializados. Si no aplica, escribe "N/A".',false,true),
-      textField('modelo_ingresos','¿Cómo generas ingresos actualmente?','Consultas, productos físicos, cursos, servicios, etc.',true,false),
-      textField('precio_promedio','¿Cuál es el precio promedio de tu producto o servicio?','Si manejas varios precios, pon un rango (ej: "$500 - $2,000 por consulta"). Esto nos ayuda a entender qué tipo de estrategia necesitas: no es lo mismo vender algo de $200 que de $10,000.',true,false),
-      radioGroup('tipo_negocio','¿Tu negocio es…?',null,TIPO_NEGOCIO),
-      textField('competidores','¿Quiénes son tus 2-3 competidores principales?','Nombre o @ de redes de negocios similares al tuyo. Esto nos ayuda a ver qué hace tu competencia en contenido y cómo diferenciarte. Si no sabes, escribe "No estoy seguro(a)".',false,true)
+      textField('precio_promedio','¿Cuál es el precio promedio de tu producto o servicio?','Si manejas varios precios, pon un rango. Ej: "$80 por taco" o "$500-$2,000 por consulta".',true,false),
+      radioGroup('tipo_giro','¿Qué tipo de negocio tienes?','Esto nos ayuda a hacerte las preguntas correctas y no genéricas.',TIPO_GIRO),
+      branchFieldsForGiro()
     ].join('');
 
     case 1: return [
-      textField('hobbies','¿Cuáles son tus hobbies o intereses fuera de tu trabajo?','Deportes, cocina, música, videojuegos, lectura, viajes, coleccionar algo… Lo que sea que te apasione fuera de lo profesional. Esto nos ayuda a encontrar ángulos únicos para tu contenido.',true,true),
-      textField('expertise','¿En qué tema te consideras experto(a) — aunque no tenga que ver con tu negocio?','Tal vez sabes mucho de café, de historia, de coches, de psicología. Esos conocimientos "random" pueden ser oro para tu contenido.',true,true),
-      textField('pasion','¿Qué es lo que más te apasiona de lo que haces?','No la respuesta "correcta" — la respuesta real. ¿Qué parte de tu trabajo harías gratis?',true,true),
-      textField('personalidad','¿Cómo te describirían tus amigos o clientes en 3 palabras?','¿Serio? ¿Chistoso? ¿Directo? ¿Cálido? ¿Intenso? Esto define el tono de tu contenido.',true,false),
-      textField('referentes','¿Hay algún creador o marca cuyo estilo de contenido admires?','No tiene que ser de tu industria. Puede ser un YouTuber, un TikToker, una marca. Danos referencias de lo que te gusta ver.',false,true),
-      textField('no_haria','¿Hay algo que NO estarías dispuesto(a) a hacer en contenido?','¿No quieres mostrar tu cara? ¿No bailas? ¿No hablas de tu vida personal? ¿Odias los trends? Dilo con confianza — diseñamos la estrategia alrededor de tus límites, no en contra de ellos.',false,true)
+      textField('hobbies_expertise','¿Cuáles son tus hobbies, intereses o temas que dominas fuera del trabajo principal?','Deportes, cocina, música, videojuegos, lectura, temas "random" que conoces bien. Esto nos ayuda a encontrar ángulos únicos para tu contenido.',true,true),
+      textField('personalidad','¿Cómo te describirían tus amigos o clientes en 3 palabras?','¿Serio? ¿Chistoso? ¿Directo? ¿Cálido? Esto define el tono de tu contenido.',true,false),
+      textField('referentes','¿Hay algún creador o marca cuyo estilo admires?','No tiene que ser de tu industria. Danos referencias de lo que te gusta ver.',false,true),
+      textField('no_haria','¿Hay algo que NO estarías dispuesto(a) a hacer en contenido?','¿No quieres mostrar tu cara? ¿No bailas? ¿No hablas de tu vida personal? Diseñamos alrededor de tus límites.',false,true)
     ].join('');
 
     case 2: return [
-      textField('cliente_ideal','Describe a tu cliente ideal','Piensa en esa persona que sería tu mejor cliente. ¿Qué edad tiene? ¿Dónde vive? ¿A qué se dedica? ¿Qué estilo de vida lleva?',true,true),
+      textField('cliente_ideal','Describe a tu cliente ideal','¿Qué edad tiene? ¿Dónde vive? ¿A qué se dedica? ¿Qué estilo de vida lleva?',true,true),
       textField('problema_resuelve','¿Qué problema principal les resuelves?','¿Qué dolor o necesidad tiene tu cliente que tú solucionas?',true,true),
-      chipGroup('redes_audiencia','¿En qué redes sociales pasa tiempo tu audiencia?','Selecciona todas las que apliquen.',REDES),
-      chipGroup('contenido_consume','¿Qué tipo de contenido consume tu audiencia?','Selecciona los formatos que crees que les atraen más.',CONTENIDO_CONSUMO)
+      chipGroup('redes_audiencia','¿En qué redes sociales pasa tiempo tu audiencia?','Selecciona todas las que apliquen.',REDES)
     ].join('');
 
     case 3: return [
       chipGroup('redes_actuales','¿Qué redes sociales usas actualmente para tu negocio?',null,REDES),
       textField('arroba_redes','¿Cuáles son tus @ en redes y cuántos seguidores tienes?','Ej: @minegocio en Instagram (1,200 seguidores), @minegocio en TikTok (300 seguidores). Necesitamos ver tu perfil actual para diseñar una estrategia realista.',true,true),
       radioGroup('frecuencia_publicacion','¿Con qué frecuencia publicas contenido?',null,FRECUENCIA),
-      textField('contenido_actual','¿Qué tipo de contenido has hecho hasta ahora?','Fotos, videos, reels, historias, lives, etc. Si no has hecho nada, escribe "Nada todavía".',false,true),
-      textField('que_funciono','¿Qué te ha funcionado y qué no?','¿Algún post tuvo buenos resultados? ¿Algo que intentaste y no pegó? Si no sabes, está bien decirlo.',false,true),
-      textField('videos_virales','Si ya publicas, ¿cuáles han sido tus videos o posts con más alcance?','Pega los links o descríbelos. Nos interesa saber qué le gustó a tu audiencia — a veces lo que más pega no es lo que esperas. Si no has publicado, escribe "Aún no publico".',false,true),
-      radioGroup('tiempo_semanal','¿Cuánto tiempo a la semana puedes dedicar a contenido?',null,TIEMPO),
-      radioGroup('videos_semana','¿Cuántos videos estarías dispuesto(a) a publicar por semana?','Sé honesto(a). Es mejor publicar 2 videos naturales y auténticos que 7 forzados. El mejor contenido no requiere guiones complicados — si grabar se siente como tarea pesada, algo está mal.',VIDEOS),
-      radioGroup('tiene_equipo','¿Tienes equipo o haces todo solo(a)?','Esto define qué tan ambiciosa puede ser la estrategia. No es lo mismo planear para una persona que para un equipo.',EQUIPO)
+      radioGroup('videos_semana','¿Cuántos videos estarías dispuesto(a) a publicar por semana?','Sé honesto(a). Mejor 2 videos naturales y auténticos que 7 forzados.',VIDEOS),
+      radioGroup('tiene_equipo','¿Tienes equipo o haces todo solo(a)?','Esto define qué tan ambiciosa puede ser la estrategia.',EQUIPO)
     ].join('');
 
     case 4: return [
       chipGroup('objetivo_principal','¿Qué quieres lograr en los próximos 3 meses?','Selecciona tus prioridades.',OBJETIVOS),
-      textField('clientes_actuales','¿Cuántos clientes o ventas generas al mes actualmente?','Un número aproximado está bien. Si estás empezando desde cero, escríbelo — no hay respuesta incorrecta.',true,false),
-      radioGroup('crecimiento_esperado','¿Qué nivel de crecimiento esperas en los próximos 3 meses?','El crecimiento orgánico en redes toma tiempo. Sé honesto(a) sobre tus expectativas para que podamos diseñar una estrategia realista.',CRECIMIENTO),
-      radioGroup('publicidad_pagada','¿Has invertido en publicidad pagada en redes?',null,PUBLICIDAD),
-      textField('algo_mas','¿Hay algo más que debamos saber?','Cualquier detalle adicional sobre tu negocio, tu situación, o tus expectativas.',false,true)
+      radioGroup('crecimiento_esperado','¿Qué nivel de crecimiento esperas en los próximos 3 meses?','El crecimiento orgánico toma tiempo. Sé honesto(a) para diseñar una estrategia realista.',CRECIMIENTO),
+      chipGroup('servicios_interes','¿Qué servicios te interesan?','Marca todos los que te llamen la atención. Si no sabes qué es algo, marca la última opción y nosotros te orientamos.',SERVICIOS_PRISMA),
+      textField('intencion_abierta','Cuéntanos con tus palabras: ¿qué quieres lograr con Prisma?','Sin filtro. Dinos qué tienes en mente, qué te gustaría probar, qué llevas tiempo queriendo hacer pero no sabes cómo. Mientras más honesto, mejor estrategia.',true,true)
     ].join('');
   }
 }
