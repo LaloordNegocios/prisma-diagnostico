@@ -237,7 +237,6 @@ var CRECIMIENTO = ["Un crecimiento gradual y sostenido (10-20% más que hoy)","D
 var FORMACION = ["Tengo estudios formales o certificaciones","Me formé con experiencia práctica (autodidacta o en campo)","Ambos — tengo estudios y experiencia","Estoy en proceso de formarme"];
 var EQUIPO = ["Hago todo solo(a)","Tengo un asistente o alguien que me ayuda","Tengo un equipo pequeño (2-5 personas)","Tengo un equipo grande (+5 personas)"];
 
-// Nuevas constantes para ramas
 var TIPO_GIRO = [
   "Comida (puestos, fondas, restaurantes, food trucks, postres)",
   "Tienda / Productos (naturista, boutique, papelería, etc.)",
@@ -257,6 +256,20 @@ var SERVICIOS_PRISMA = [
   "Estrategia de marca y posicionamiento",
   "Consultoría estratégica",
   "Todavía no sé, recomiéndenme"
+];
+
+var MODELO_OPERACION = [
+  "Es un solo negocio con varias líneas (mismo lugar, equipo y horario)",
+  "Son negocios separados (lugares, equipos y horarios distintos)"
+];
+
+var PRESUPUESTO = [
+  "Menos de $1,000 MXN/mes",
+  "$1,000 — $2,500 MXN/mes",
+  "$2,500 — $5,000 MXN/mes",
+  "$5,000 — $10,000 MXN/mes",
+  "Más de $10,000 MXN/mes",
+  "Todavía no lo tengo claro, recomiéndenme"
 ];
 
 var currentStep = 0;
@@ -313,11 +326,54 @@ function saveTextFields() {
   }
 }
 
-function branchFieldsForGiro() {
-  var giro = data.tipo_giro || '';
-  if (!giro) return '';
+function giroLabel(giro) {
+  if (giro.indexOf('Comida') === 0) return 'Comida';
+  if (giro.indexOf('Tienda') === 0) return 'Tienda / Productos';
+  if (giro.indexOf('Profesional') === 0) return 'Profesional independiente';
+  return 'Otro';
+}
 
-  var divider = '<div class="branch-divider">✨ Preguntas específicas para tu tipo de negocio</div>';
+function branchFieldsForGiro() {
+  var giros = data.tipo_giro || [];
+  if (!giros.length) return '';
+
+  var blocks = '';
+
+  // Si marcó más de un giro, primero preguntar el modelo de operación
+  if (giros.length > 1) {
+    blocks += radioGroup(
+      'modelo_operacion',
+      '¿Cómo operan estos negocios?',
+      'Marcaste varios giros. Necesitamos saber si son uno solo con varias líneas o negocios separados.',
+      MODELO_OPERACION
+    );
+    // Esperar a que conteste antes de mostrar las ramas
+    if (!data.modelo_operacion) return blocks;
+  }
+
+  var separados = data.modelo_operacion && data.modelo_operacion.indexOf('separados') >= 0;
+  var isMulti = giros.length > 1;
+
+  for (var i = 0; i < giros.length; i++) {
+    blocks += renderGiroBranch(giros[i], isMulti, separados, i + 1);
+  }
+
+  return blocks;
+}
+
+function renderGiroBranch(giro, isMulti, separados, idx) {
+  var headerText, note = '';
+
+  if (isMulti && separados) {
+    headerText = '✨ Negocio ' + idx + ' — ' + giroLabel(giro);
+    note = '<p class="field-hint" style="margin:-12px 0 16px;font-style:italic">Responde sobre el principal de este giro. Si tienes más de uno del mismo tipo, menciónalo en "historia" o "descripción".</p>';
+  } else if (isMulti && !separados) {
+    headerText = '✨ Línea de negocio: ' + giroLabel(giro);
+  } else {
+    headerText = '✨ Preguntas específicas para tu tipo de negocio';
+  }
+
+  var divider = '<div class="branch-divider">' + headerText + '</div>' + note;
 
   if (giro.indexOf('Comida') === 0) {
     return divider + [
@@ -356,10 +412,10 @@ function getStepHTML(step) {
       textField('telefono','Teléfono o WhatsApp','Para coordinar la entrega de tu estrategia.',true,false),
       textField('ciudad','¿En qué ciudad o zona operas?','Si tu negocio es 100% online, escribe "Online" y tu ciudad de residencia.',true,false),
       textField('nombre_negocio','Nombre de tu negocio o marca','Si no tienes marca todavía, pon tu nombre personal — muchos negocios exitosos empiezan así.',true,false),
-      textField('descripcion','¿A qué se dedica tu negocio?','Describe en 2-3 oraciones qué haces y para quién.',true,true),
+      textField('descripcion','¿A qué se dedica tu negocio?','Describe en 2-3 oraciones qué haces y para quién. Si tienes varios negocios, descríbelos todos.',true,true),
       textField('diferenciador','¿Qué te hace diferente?','Esta es la pregunta más importante. ¿Qué ofreces tú que otros en tu ramo NO ofrecen? ¿Por qué alguien debería elegirte a ti?',true,true),
       textField('precio_promedio','¿Cuál es el precio promedio de tu producto o servicio?','Si manejas varios precios, pon un rango. Ej: "$80 por taco" o "$500-$2,000 por consulta".',true,false),
-      radioGroup('tipo_giro','¿Qué tipo de negocio tienes?','Esto nos ayuda a hacerte las preguntas correctas y no genéricas.',TIPO_GIRO),
+      chipGroup('tipo_giro','¿Qué tipo de negocio tienes?','Selecciona todos los que apliquen. Si tienes varios giros, márcalos todos.',TIPO_GIRO),
       branchFieldsForGiro()
     ].join('');
 
@@ -373,7 +429,8 @@ function getStepHTML(step) {
     case 2: return [
       textField('cliente_ideal','Describe a tu cliente ideal','¿Qué edad tiene? ¿Dónde vive? ¿A qué se dedica? ¿Qué estilo de vida lleva?',true,true),
       textField('problema_resuelve','¿Qué problema principal les resuelves?','¿Qué dolor o necesidad tiene tu cliente que tú solucionas?',true,true),
-      chipGroup('redes_audiencia','¿En qué redes sociales pasa tiempo tu audiencia?','Selecciona todas las que apliquen.',REDES)
+      chipGroup('redes_audiencia','¿En qué redes sociales pasa tiempo tu audiencia?','Selecciona todas las que apliquen.',REDES),
+      textField('competencia_local','¿Quiénes son tus competidores o referentes directos en tu zona?','Menciona 2-3 negocios o personas que ofrezcan algo parecido a lo tuyo en tu ciudad/región. Pueden ser cuentas de redes que admires o competencia directa que quieras superar. Si crees que no tienes competencia, dilo también.',false,true)
     ].join('');
 
     case 3: return [
@@ -381,14 +438,20 @@ function getStepHTML(step) {
       textField('arroba_redes','¿Cuáles son tus @ en redes y cuántos seguidores tienes?','Ej: @minegocio en Instagram (1,200 seguidores), @minegocio en TikTok (300 seguidores). Necesitamos ver tu perfil actual para diseñar una estrategia realista.',true,true),
       radioGroup('frecuencia_publicacion','¿Con qué frecuencia publicas contenido?',null,FRECUENCIA),
       radioGroup('videos_semana','¿Cuántos videos estarías dispuesto(a) a publicar por semana?','Sé honesto(a). Mejor 2 videos naturales y auténticos que 7 forzados.',VIDEOS),
-      radioGroup('tiene_equipo','¿Tienes equipo o haces todo solo(a)?','Esto define qué tan ambiciosa puede ser la estrategia.',EQUIPO)
+      radioGroup('tiene_equipo','¿Tienes equipo o haces todo solo(a)?','Esto define qué tan ambiciosa puede ser la estrategia.',EQUIPO),
+      textField('clientes_mes','¿Aproximadamente cuántos clientes nuevos recibes al mes hoy?','No tiene que ser exacto — danos un número aproximado. Cuenta solo clientes nuevos, no recurrentes. Si no llevas la cuenta, escribe "no llevo la cuenta" y por qué (ej: "el negocio es de paso").',true,false),
+      textField('canal_principal','¿De dónde vienen la mayoría de tus clientes hoy?','Recomendación de boca en boca, redes sociales, Google, paso de calle, publicidad pagada, etc. Si vienen de varios canales, ordénalos del más al menos importante.',true,true)
     ].join('');
 
     case 4: return [
       chipGroup('objetivo_principal','¿Qué quieres lograr en los próximos 3 meses?','Selecciona tus prioridades.',OBJETIVOS),
       radioGroup('crecimiento_esperado','¿Qué nivel de crecimiento esperas en los próximos 3 meses?','El crecimiento orgánico toma tiempo. Sé honesto(a) para diseñar una estrategia realista.',CRECIMIENTO),
+      radioGroup('presupuesto_mensual','¿Qué presupuesto mensual tienes en mente para tu estrategia de crecimiento digital?','No hay respuesta correcta. Sé honesto(a) — esto define qué combo de servicios podemos recomendarte. Tu presupuesto NO descuenta el precio de cada servicio; nos guía para armar tu combo.',PRESUPUESTO),
+      textField('inversion_actual','¿Cuánto estás invirtiendo hoy en marketing, publicidad o gestión de redes?','Suma todo: pago a freelancers, agencias, publicidad pagada, herramientas, software, etc. Si hoy no inviertes nada, escribe "0".',false,false),
       chipGroup('servicios_interes','¿Qué servicios te interesan?','Marca todos los que te llamen la atención. Si no sabes qué es algo, marca la última opción y nosotros te orientamos.',SERVICIOS_PRISMA),
-      textField('intencion_abierta','Cuéntanos con tus palabras: ¿qué quieres lograr con Prisma?','Sin filtro. Dinos qué tienes en mente, qué te gustaría probar, qué llevas tiempo queriendo hacer pero no sabes cómo. Mientras más honesto, mejor estrategia.',true,true)
+      textField('intentos_previos','¿Qué has intentado antes para crecer y por qué no terminó de funcionar?','Cualquier intento cuenta: agencia anterior, freelancer, cursos, hacer publicidad por tu cuenta, intentar TikTok solo(a), etc. Saber qué NO funcionó nos evita repetirlo y nos dice mucho de ti.',false,true),
+      textField('intencion_abierta','Sin filtro, ¿qué tienes en mente?','Dinos qué te gustaría probar, qué llevas tiempo queriendo hacer pero no sabes cómo, o cómo te imaginas trabajando con nosotros. Entre más honesto y específico, mejor.',true,true),
+      textField('algo_mas','¿Hay algo importante que no te preguntamos pero deberíamos saber?','Cualquier detalle de tu situación, tu negocio, tu equipo o tu vida que sientas relevante para diseñar tu estrategia. Si todo lo importante ya lo dijiste, déjalo en blanco.',false,true)
     ].join('');
   }
 }
